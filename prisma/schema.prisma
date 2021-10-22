@@ -1,0 +1,62 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+datasource db {
+  provider          = "postgresql"
+  url               = env("DATABASE_URL")
+  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Address {
+  id         Int          @id @default(autoincrement())
+  street     String
+  city       String
+  postCode   String
+  exhibition Exhibition[]
+}
+
+model Exhibition {
+  id        Int                   @id @default(autoincrement())
+  name      String
+  date      DateTime
+  address   Address               @relation(fields: [addressId], references: [id])
+  addressId Int
+  ticket    Ticket[]
+  artists   ExhibitionOnArtists[]
+}
+
+model Ticket {
+  id           Int        @id @default(autoincrement())
+  price        Float
+  exhibition   Exhibition @relation(fields: [exhibitionId], references: [id])
+  exhibitionId Int
+  customer     Customer   @relation(fields: [customerId], references: [id])
+  customerId   Int
+}
+
+model Customer {
+  id     Int      @id @default(autoincrement())
+  email  String
+  ticket Ticket[]
+}
+
+model Artist {
+  id          Int                   @id @default(autoincrement())
+  firstName   String
+  lastName    String
+  exhibitions ExhibitionOnArtists[]
+}
+
+model ExhibitionOnArtists {
+  exhibition   Exhibition @relation(fields: [exhibitionId], references: [id])
+  exhibitionId Int
+  artist       Artist     @relation(fields: [artistId], references: [id])
+  artistId     Int
+  assignedAt   DateTime   @default(now())
+
+  @@id([exhibitionId, artistId])
+}
